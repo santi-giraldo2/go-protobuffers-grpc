@@ -1,0 +1,117 @@
+syntax="proto3";
+// https://developers.google.com/protocol-buffers/docs/proto3
+// se pueden hacer importaciones entre .proto
+import "studentpb/student.proto";
+
+package test;
+
+option go_package="enerbit.com/go/grpc/testpb";
+
+// un message es como un struct/clase 
+// es lo que se utiliza para poder saber que se va a mandar y recibir en las peticiones
+
+// se le indica el tipo de dato, el nombre y la posición en la que se va a mandar
+// no pueden haber dos campos con el mismo nombre y en la misma posición
+// un tipo de dato puede ser un message, string, int
+// antes del tipo de dato se puede agregar unas palabras reservadas
+// repeated => es un array de un tipo de dato 
+// optional => es opcional
+// map => es un diccionario       map<key_type, value_type> map_field = N;
+// un message puede ser un enum el cual es un tipo de dato que solo puede tener un valor de una lista de valores
+
+// enum Foo {
+//     reserved 2, 15, 9 to 11, 40 to max;
+//     reserved "FOO", "BAR";
+//   }
+
+
+
+
+message Test {
+    string id = 1;
+    string name = 2;
+}
+
+message GetTestRequest {
+    string id = 1;
+}
+
+message SetTestResponse {
+    string id = 1;
+    string name = 2;
+}
+
+message Question {
+    string id = 1;
+    string answer = 2;
+    string question = 3;
+    string test_id = 4;
+}
+
+message QuestionPerTest {
+    string id = 1;
+    string question = 2;
+    bool ok = 3;
+    int32 current = 4;
+    int32 total = 5;
+}
+
+message SetQuestionResponse {
+    bool ok = 1;
+}
+
+message EnrollmentRequest {
+    string student_id = 1;
+    string test_id = 2;
+}
+
+message GetStudentsPerTestRequest {
+    string test_id = 1;
+}
+
+message TakeTestRequest {
+    string answer = 1;
+    string test_id = 2;
+    string student_id = 3;
+}
+
+message GetTestScoreRequest {
+    string test_id = 1;
+    string student_id = 2;
+}
+
+message TestScore {
+    string test_id = 1;
+    string student_id = 2;
+    int32 ok = 3;
+    int32 ko = 4;
+    int32 total = 5;
+    int32 score = 6;
+}
+
+// un stream es un canal de comunicación 
+// se utiliza para mandar y recibir datos de forma continua
+// si como parametro se tiene un stream quiere decir que el servirdor se puede quedar escuchando al cliente todo lo que 
+// ese diablillo quiera mandar, quiere decir que puede mandar n cantidad de message
+// en este caso el endpoint podria devolver solo un message.
+// parametro (n message) => respuesta (1 message)
+
+// tambien se puede tener un stream de respuesta lo cual seria lo mismo, puede estar respondiendo n cantidad de message
+// asi que hay 4 formas de comunicarse con un servidor
+
+// 1. request => response
+// 2. request => stream response
+// 3. stream request => response
+// 4. stream request => stream response
+
+service TestService {
+    // tiene como parametro un message y devuelve otro message
+    rpc GetTest(GetTestRequest) returns (Test);
+    rpc SetTest(Test) returns (SetTestResponse);
+    // tiene como parametro un stream y retorna un message
+    rpc SetQuestions(stream Question) returns (SetQuestionResponse);
+    rpc EnrollStudents(stream EnrollmentRequest) returns (SetQuestionResponse);
+    rpc GetStudentsPerTest(GetStudentsPerTestRequest) returns (stream student.Student);
+    rpc TakeTest(stream TakeTestRequest) returns (stream QuestionPerTest);
+    rpc GetTestScore(GetTestScoreRequest) returns (TestScore);
+}
